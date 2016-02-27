@@ -1,48 +1,119 @@
 <html>
 
-<canvas id="gameCanvas" width ="900" height="650" style="border:5px solid #000000;"></canvas>
-
+<canvas id="gameCanvas" width ="900" height="600" style="border:2px solid #000000"></canvas>
 
 <button id=moreBallSpeed>Increase Difficulty</button>
+
 <button id=lessBallSpeed>Lower Difficulty</button>
 
+<button id="pause">Pause</button>
+
+<button id="resume">Resume</button>
+
+<button id="ArcadeMusic">Arcade Music!</button>
+
+<button id = "MusicOff">Music Off:(</button>
+
+<img src "win.jpg"/>
+
+<body>
+
 <script>
-var canvas;
+
+//Canvas
+var gameCanvas;
 var canvasContext;
+
+//Ball
 var ballX = 50;
 var ballSpeedX = 10;
 var ballY = 50;
-var ballSpeedY = 4;
+var ballSpeedY = 3;
 
+// ComputerSpeed
 var computerSpeed = 8;
 
+// Scoring
 var player1Score = 0;
 var player2Score = 0;
-const WINNING_SCORE = 3;
+var streakScore = 0;
+const WINNING_SCORE = 5;
 
+// WinScreen
 var showingWinScreen = false;
 
+// Paddle Dimensions
 var paddle1Y = 250;
 var paddle2Y = 250;
-const PADDLE_HEIGHT = 100;
-const PADDLE_THICKNESS = 10;
+const PADDLE_HEIGHT = 125;
+var PADDLE_THICKNESS = 10;
 
-var audio = new Audio('win.mp3');
+// Audio
+var audioWin = new Audio('win.mp3');
 var audioHit1 = new Audio("Paddle1.mp3");
 var audioHit2 = new Audio("Paddle2.mp3");
 var audioCat = new Audio("cat.mp3");
-
+var audioMusic = new Audio("music.mp3")
+// Button grabs
 var decreaseBallSpeed = document.getElementById("lessBallSpeed")
 var increaseBallSpeed = document.getElementById("moreBallSpeed")
 var changeColor = document.getElementById("changeColor")
+var pause = document.getElementById("pause")
+var resume = document.getElementById("resume")
+var ArcadeMusicOn = document.getElementById("ArcadeMusic")
+var ArcadeMusicOff = document.getElementById("MusicOff")
+//Colors
+var paddleColor = "black"
+var canvasColor = "white"
+var winTextColor = "black"
+var netColor = "black"
+var ballColor = "black"
 
-var paddleColor = ("black")
-var canvasColor = ("white")
+document.write("Streak:" + streakScore);
 
+function turnMusicOff() {
+	console.log("music off works")
 
+	audioMusic.pause()
+	audioMusic.currentTime = 0;
+
+}
+
+MusicOff.onclick = turnMusicOff
+
+function turnMusicOn() {
+	console.log("music works")
+	
+	
+	audioMusic.play()
+
+	return;
+}
+ArcadeMusic.onclick = turnMusicOn
+
+	
+
+function resumeGame() {
+	console.log("resume button works")
+	computerSpeed = 8
+	ballSpeedX = 10
+	ballSpeedY = ballSpeedY
+	PADDLE_THICKNESS = 10
+
+}
+resume.onclick = resumeGame
+
+function winImg() {
+	var img = new Image("win.jpg")
+	var imgPos = document.images['win.jpg'].style;
+
+	img.position = "absolute";
+	img.offsetLeft = "60px";
+	img.offsetTop = "20px";
+}
 
 function calculateMousePos(evt) {
-	var rect = canvas.getBoundingClientRect();
+	var rect = gameCanvas.getBoundingClientRect();
 	var root = document.documentElement;
 	var mouseX = evt.clientX - rect.left - root.scrollLeft;
 	var mouseY = evt.clientY - rect.top - root.scrollTop;
@@ -53,9 +124,6 @@ function calculateMousePos(evt) {
 	};
 
 }
-
-
-
 
 
 function handleMouseClick(evt) {
@@ -71,8 +139,8 @@ function handleMouseClick(evt) {
 
 window.onload = function() {	
 	console.log("Hello World!");
-	canvas = document.getElementById("gameCanvas");
-	canvasContext = canvas.getContext("2d");
+	gameCanvas = document.getElementById("gameCanvas");
+	canvasContext = gameCanvas.getContext("2d");
 	var framesPerSecond= 60;
 	setInterval(function() {
 			moveEverything();
@@ -80,27 +148,29 @@ window.onload = function() {
 							
 	}, 1000/framesPerSecond);
 
-		canvas.addEventListener("mousedown", handleMouseClick)
+		gameCanvas.addEventListener("mousedown", handleMouseClick)
 
-	canvas.addEventListener("mousemove", function(evt) {
+	gameCanvas.addEventListener("mousemove", function(evt) {
 				var mousePos = calculateMousePos(evt);
 				paddle1Y = mousePos.y-(PADDLE_HEIGHT/2);
 
 		});
 
+
 function ballReset () {
+	streakScore = 0
+
 	if(player1Score >= WINNING_SCORE ||
 		player2Score >= WINNING_SCORE ) {
-
-audio.play();
+audioWin.play();
 showingWinScreen = true;
 
 	}
 
 
 	ballSpeedX = -ballSpeedX;
-	ballX = canvas.width/2;
-	ballY = canvas.height/2;
+	ballX = gameCanvas.width/2;
+	ballY = gameCanvas.height/2;
 
 }
 
@@ -132,11 +202,11 @@ function moveEverything() {
 
 		computerMovement();
 ballX += ballSpeedX;
-if(ballX > canvas.width) {
+if(ballX > gameCanvas.width) {
 		if (ballY > paddle2Y &&
 			ballY < paddle2Y+PADDLE_HEIGHT) {
 			ballSpeedX = -ballSpeedX;
-
+			streakScore ++
 			
 
 			var deltaY = ballY -(paddle2Y+PADDLE_HEIGHT/2);
@@ -145,7 +215,9 @@ if(ballX > canvas.width) {
 		} else {
 	player1Score ++;
 	audioHit2.play();
-	ballReset();
+	streakScore ++;
+    ballReset()
+
 	
 
 	
@@ -156,8 +228,8 @@ if(ballX > canvas.width) {
 		if (ballY > paddle1Y &&
 			ballY < paddle1Y+PADDLE_HEIGHT) {
 			ballSpeedX = -ballSpeedX;
-
-			
+			streakScore ++
+	
 
 			var deltaY = ballY 
 			-(paddle1Y+PADDLE_HEIGHT/2);
@@ -167,12 +239,12 @@ if(ballX > canvas.width) {
 		 else {
 	player2Score ++; // must be BEFORE ballReset
 	audioHit2.play();
-	ballReset();
+    ballReset()
 	
 	}
 }
 ballY += ballSpeedY;
-if(ballY > canvas.height) {
+if(ballY > gameCanvas.height) {
 		ballSpeedY = -ballSpeedY;
 		audioHit1.play();
 	}
@@ -186,9 +258,9 @@ if(ballY > canvas.height) {
 
 function drawNet() {
 
-	for(var i=0;i<canvas.height; i+=40)
+	for(var i=0;i<gameCanvas.height; i+=40)
 
-colorRect(canvas.width/2-1,i,2,20,"black");
+colorRect(gameCanvas.width/2-1,i,2,30,netColor);
 
 }
 
@@ -196,31 +268,55 @@ function drawEverything() {
 
 	//This is black background
 
-	colorRect(0,0,canvas.width,canvas.height, canvasColor);
+	colorRect(0,0,gameCanvas.width,gameCanvas.height, canvasColor);
 	
 			
 	if (showingWinScreen){
 
 if(player1Score >= WINNING_SCORE)
 {
+
+
+		canvasContext.font = "50px Fantasy";
 		
-		
-		canvasContext.font = "45px Arial";
-		canvasContext.fillStyle=("black");
+		var gradient = canvasContext.createLinearGradient(0, 0, gameCanvas.width, 0);
+
+		gradient.addColorStop("0", "magenta");
+		gradient.addColorStop("0.5", "blue");
+		gradient.addColorStop("1.0", "red");
+
+		canvasContext.fillStyle = gradient;
 		canvasContext.fillText("Left player won!",300,200);
+
+
 }
 
 else if(player2Score >= WINNING_SCORE ) {
 
 		
-		canvasContext.font = "45px Arial";
-		canvasContext.fillStyle="black";
+		canvasContext.font = "50px Fantasy";
+		
+		var gradient = canvasContext.createLinearGradient(0, 0, gameCanvas.width, 0);
+
+		gradient.addColorStop("0", "orange");
+		gradient.addColorStop("0.5", "yellow");
+		gradient.addColorStop("1.0", "green");
+
+		canvasContext.fillStyle = gradient;
 		canvasContext.fillText("Right player won!",300,200);
 
 }
 
-		canvasContext.fillStyle="black";
-		canvasContext.fillText("Click to continue!",300,500);
+		canvasContext.fillStyle=winTextColor;
+		canvasContext.fillText("Click to continue!",295,500);
+
+		canvasContext.font = "50px Fantasy";
+		canvasContext.fillText(player1Score,100,100);
+		canvasContext.fillText(player2Score, gameCanvas.width-100,100);
+
+		canvasContext.font = "30px Fantasy"
+		canvasContext.fillText("Streak:"+ streakScore,100, 550)
+
 
 		return;
 	}
@@ -233,16 +329,19 @@ else if(player2Score >= WINNING_SCORE ) {
 
 	//This is the right player paddle
 
-	colorRect(canvas.width-PADDLE_THICKNESS,paddle2Y ,PADDLE_THICKNESS,PADDLE_HEIGHT, paddleColor)
+	colorRect(gameCanvas.width-PADDLE_THICKNESS,paddle2Y ,PADDLE_THICKNESS,PADDLE_HEIGHT, paddleColor)
 	
 	
 	//This is the ball
+	colorCircle(ballX, ballY, 10, ballColor)
 
-
-canvasContext.fillText(player1Score,100,100);
-	canvasContext.fillText(player2Score, canvas.width-100,100);
-
-colorCircle(ballX, ballY, 10, "green")
+	// This is scoring
+	canvasContext.font = "50px Fantasy";
+	canvasContext.fillText(player1Score,100,100);
+	canvasContext.fillText(player2Score, gameCanvas.width-100,100);
+	
+	canvasContext.font = "30px Fantasy"
+	canvasContext.fillText("Streak:"+ streakScore,100, 550)
 
 
 	
@@ -263,10 +362,26 @@ function colorRect(leftX,topY,width,height, drawColor) {
 		canvasContext.fillRect(leftX,topY,width,height);
 }
 
+
+
+function pauseGame() {
+	console.log("pause button works")
+computerSpeed = 0
+ballSpeedX = 0
+ballSpeedY = 0
+PADDLE_THICKNESS = 0
+
+}
+
+pause.onclick = pauseGame
+
 function decreaseBallSpeed (){
 console.log("decrease button works")
 computerSpeed = computerSpeed - 3
 		paddleColor = "black"
+		canvasColor = "white"
+		netColor = "black"
+		ballColor = "black"
 
 		if (ballSpeedX > 0) {
 		
@@ -281,13 +396,18 @@ computerSpeed = computerSpeed - 3
 
 	}
 
-
 lessBallSpeed.onclick = decreaseBallSpeed
+
+
+
 function increaseBallSpeed () {
 		console.log("Button works")
 		computerSpeed = computerSpeed + 3
-		paddleColor = "red"
-
+		paddleColor = "white"
+		canvasColor = "black"
+		netColor = "white"
+		ballColor = "white"
+		winTextColor = "white"
 		if (ballSpeedX > 0) {
 		
 	ballSpeedX = (ballSpeedX + 3) 
@@ -303,9 +423,10 @@ function increaseBallSpeed () {
 moreBallSpeed.onclick = increaseBallSpeed 
 }
 
+
 </script>
 
 
-
+</body>
 
 </html>
